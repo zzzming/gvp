@@ -1,4 +1,4 @@
-module zzzming/gvp
+module github.com/zzzming/gvp
 
 go 1.19
 

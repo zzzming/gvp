@@ -5,7 +5,7 @@ import (
 	"log"
 	"net"
 
-	pb "github.com/zzzming/gvp/proto"
+	pb "github.com/zzzming/gvp/pkg/pinecone/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -17,27 +17,27 @@ type server struct {
 
 // Implement your service methods here.
 func (s *server) Upsert(ctx context.Context, in *pb.UpsertRequest) (*pb.UpsertResponse, error) {
-	return &pb.UpsertResponse{Message: "Hello " + in.GetVector().GetId()}, nil
+	return &pb.UpsertResponse{UpsertedCount: 1}, nil
 }
 
 func (s *server) Delete(ctx context.Context, in *pb.DeleteRequest) (*pb.DeleteResponse, error) {
-	return &pb.DeleteResponse{Message: "Hello " + in.GetId()}, nil
+	return &pb.DeleteResponse{}, nil
 }
 
 func (s *server) Fetch(ctx context.Context, in *pb.FetchRequest) (*pb.FetchResponse, error) {
-	return &pb.FetchResponse{Message: "Hello " + in.GetId()}, nil
+	return &pb.FetchResponse{}, nil
 }
 
 func (s *server) Query(ctx context.Context, in *pb.QueryRequest) (*pb.QueryResponse, error) {
-	return &pb.QueryResponse{Message: "Hello " + in.GetVector().GetId()}, nil
+	return &pb.QueryResponse{}, nil
 }
 
 func (s *server) Update(ctx context.Context, in *pb.UpdateRequest) (*pb.UpdateResponse, error) {
-	return &pb.UpdateResponse{Message: "Hello " + in.GetVector().GetId()}, nil
+	return &pb.UpdateResponse{}, nil
 }
 
 func (s *server) DescribeIndexStats(ctx context.Context, in *pb.DescribeIndexStatsRequest) (*pb.DescribeIndexStatsResponse, error) {
-	return &pb.DescribeIndexStatsResponse{Message: "Hello " + in.GetId()}, nil
+	return &pb.DescribeIndexStatsResponse{}, nil
 }
 
 func GRPCServer(port string) {
