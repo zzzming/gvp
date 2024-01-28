@@ -1,13 +1,21 @@
-package server
+package main
 
 import (
 	"context"
-	"log"
 	"net"
 
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	pb "github.com/zzzming/gvp/pkg/pinecone/v1"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/status"
+)
+
+const (
+	PineCodeAPIKey = "api-key"
 )
 
 // server is used to implement your service.
@@ -40,16 +48,37 @@ func (s *server) DescribeIndexStats(ctx context.Context, in *pb.DescribeIndexSta
 	return &pb.DescribeIndexStatsResponse{}, nil
 }
 
+func authInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	// Extract authentication metadata from the context
+	md, ok := metadata.FromIncomingContext(ctx)
+	if !ok {
+		return nil, status.Errorf(codes.Unauthenticated, "missing credentials")
+	}
+	apiKey := md.Get(PineCodeAPIKey)
+	if len(apiKey) == 0 || apiKey[0] == "" {
+		return nil, status.Errorf(codes.Unauthenticated, "missing api-key")
+	}
+
+	// Continue with the handler if authentication is successful
+	return handler(ctx, req)
+}
+
 func GRPCServer(port string) {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+
 	lis, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		panic(err)
 	}
-	s := grpc.NewServer()
+	s := grpc.NewServer(grpc.UnaryInterceptor(authInterceptor))
 	pb.RegisterVectorServiceServer(s, &server{})
 	reflection.Register(s)
-	log.Printf("server listening at %v", lis.Addr())
+	log.Info().Msgf("server listening at %v", lis.Addr())
 	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+		panic(err)
 	}
+}
+
+func main() {
+	GRPCServer("50051")
 }
